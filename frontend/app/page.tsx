@@ -1,65 +1,161 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { Sidebar } from "@/components/sidebar";
+import { MobileHeader } from "@/components/mobile-header";
+import { SearchBar } from "@/components/search-bar";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Sparkles, TrendingUp, Zap, Shield, AlertCircle } from "lucide-react";
 
 export default function Home() {
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const router = useRouter();
+
+  const handleSearch = async (query: string) => {
+    setIsLoading(true);
+    setError(null);
+    try {
+      // Create a new report request
+      const response = await fetch("/api/research", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ query }),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        setError(errorData.error || "Failed to process research query");
+        return;
+      }
+
+      const data = await response.json();
+      router.push(`/report/${data.reportId}`);
+    } catch (error) {
+      console.error("[v0] Search error:", error);
+      setError("An unexpected error occurred. Please try again.");
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
+    <div className="flex min-h-screen bg-background">
+      <Sidebar />
+      <div className="flex-1 flex flex-col">
+        <MobileHeader />
+        <main className="flex-1 overflow-auto">
+          <div className="container max-w-4xl mx-auto px-4 py-12 md:py-16">
+            <div className="space-y-12">
+              {/* Hero Section */}
+              <div className="text-center space-y-6">
+                <div className="inline-block">
+                  <div className="p-3 bg-primary/10 rounded-full">
+                    <Sparkles className="h-6 w-6 text-primary" />
+                  </div>
+                </div>
+                <h1 className="text-4xl md:text-5xl font-bold text-foreground tracking-tight">
+                  Autonomous Research Agent
+                </h1>
+                <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+                  Ask any question and let AI research the internet autonomously
+                  to provide you with a comprehensive, cited report
+                </p>
+              </div>
+
+              {/* Error Alert */}
+              {error && (
+                <div className="max-w-2xl mx-auto w-full p-4 bg-destructive/10 border border-destructive/30 rounded-lg flex gap-3 items-start">
+                  <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
+                  <div>
+                    <p className="font-semibold text-destructive">Error</p>
+                    <p className="text-sm text-destructive/80">{error}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* Search Bar */}
+              <div className="max-w-2xl mx-auto w-full">
+                <SearchBar onSearch={handleSearch} isLoading={isLoading} />
+              </div>
+
+              {/* Feature Cards */}
+              <div className="grid md:grid-cols-3 gap-4">
+                <Card className="bg-card border-border">
+                  <CardHeader className="pb-3">
+                    <div className="p-2 bg-primary/10 rounded-lg w-fit">
+                      <TrendingUp className="h-5 w-5 text-primary" />
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <CardTitle className="text-lg">Deep Research</CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      AI autonomously searches, reads, and synthesizes
+                      information from multiple sources
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-card border-border">
+                  <CardHeader className="pb-3">
+                    <div className="p-2 bg-primary/10 rounded-lg w-fit">
+                      <Shield className="h-5 w-5 text-primary" />
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <CardTitle className="text-lg">Verified Sources</CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      Every claim is backed by citations and links to original
+                      sources
+                    </p>
+                  </CardContent>
+                </Card>
+
+                <Card className="bg-card border-border">
+                  <CardHeader className="pb-3">
+                    <div className="p-2 bg-primary/10 rounded-lg w-fit">
+                      <Zap className="h-5 w-5 text-primary" />
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-2">
+                    <CardTitle className="text-lg">Fast & Smart</CardTitle>
+                    <p className="text-sm text-muted-foreground">
+                      Real-time streaming reports with structured insights and
+                      key concepts
+                    </p>
+                  </CardContent>
+                </Card>
+              </div>
+
+              {/* Example Queries */}
+              <div className="space-y-4">
+                <p className="text-center text-sm text-muted-foreground font-medium">
+                  Try asking about:
+                </p>
+                <div className="grid sm:grid-cols-2 gap-2">
+                  {[
+                    "Explain vector databases and their use cases",
+                    "What are the latest trends in AI and machine learning?",
+                    "How does blockchain technology work?",
+                    "Comparison of cloud computing platforms",
+                  ].map((example, idx) => (
+                    <button
+                      key={idx}
+                      onClick={() => handleSearch(example)}
+                      className="text-left p-3 rounded-lg border border-border hover:border-primary/50 hover:bg-secondary transition-colors group"
+                    >
+                      <p className="text-sm text-foreground group-hover:text-primary transition-colors">
+                        {example}
+                      </p>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        </main>
+      </div>
     </div>
   );
 }
