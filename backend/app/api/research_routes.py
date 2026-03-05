@@ -7,11 +7,10 @@ router = APIRouter(prefix="/research", tags=["research"])
 
 class ResearchRequest(BaseModel):
     query: str
-    max_results: Optional[int] = 10
 
 @router.post("/")
 async def start_research(request: ResearchRequest):
-    return {"message": f"Research started for query: {request.query}", "max_results": request.max_results}
+    return {"message": f"Research started for query: {request.query}"}
 
 @router.get("/{id}")
 async def get_research_report():
